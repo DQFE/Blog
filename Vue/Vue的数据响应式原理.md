@@ -4,6 +4,7 @@
 
 在没有 Vue 和 React 这些具有数据响应式特性的前端框架之前，我们从服务端提供过的接口获取到数据要渲染在 html 页面上时，抑或是需要获取表单的值进行计算回显到页面上时，都需要建立很多 DOM 事件监听器，并进行许多的 DOM 操作。举个最简单的例子：用户在 html 页面的表单中输入两个加数 a 和 b ，计算得到两个加数之和，并展示到页面上。这时我们需要监听表单中 a 和 b 两个输入框的变化，拿到变化值相加然后通过修改指定 id 或者 class 的选择器对应的 DOM 来修改两数之和。但是当输入表单不止两个时，就会令人捉急。
 
+
 而 Vue 的数据响应式大大地优化了这一整套的流程。面对大量的 UI 交互和数据更新，数据响应式让我们做到从容不迫——我们需要去了解数据的改变是怎样被触发，更新触发后的数据改变又是怎样反馈到视图。接下来我们通过对部分 Vue 源码（本文主要针对v2.6.11的 Vue 源码进行分析）的简单分析和学习来深入了解 Vue 中的数据响应式是怎样实现的。
 
 我们将这一部分的代码分析大致分为三部分：让数据变成响应式、依赖收集和派发更新。
@@ -20,7 +21,7 @@
 
 ### 让数据变成响应式
 
-基本上大家都了解 Vue 的数据响应式原理是由 JS标准内置对象方法 **Object.defineProperty** 来实现的，而这个方法是**不兼容IE8和FF22及以下版本**的浏览器的，所以 Vue 也只能在这些版本之上的浏览器中才能正常使用。这个方法的作用是直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。那么数据响应式用这个方法为**什么对象**添加或修改了**什么属性**呢？我们从 Vue 的初始化讲起。
+Vue 的数据响应式原理是由 JS 标准内置对象方法 **Object.defineProperty** 来实现的（这个方法**不兼容 IE8 和 FF22 及以下版本**浏览器，这也是为什么 Vue 只能在这些版本之上的浏览器中才能运行）。这个方法的作用是在一个对象上定义一个新属性，或者修改一个对象的现有属性。那么数据响应式用这个方法为**什么对象**添加或修改了**什么属性**呢？我们从 Vue 的初始化讲起。
 
 ![](https://user-gold-cdn.xitu.io/2019/12/27/16f452d6f985941b?w=1553&h=695&f=png&s=277122)
 
@@ -36,7 +37,7 @@ stateMixin(Vue)
 // ...
 export default Vue
 ```
-在 [*src/core/index.js*](https://github.com/DQFE/vue/blob/dev/src/core/index.js#L1) 中我们可以看到一个 Vue 被导出，这个Vue是在 *src/core/instance/index* 中定义的，Vue 是一个方法，参数是options，我们大胆猜想这个 Vue 就是进行 vue 实例化的方法，而 options 就是我们传入的 data、computed、methods 等属性。这个 Vue 方法中主要调用了 _init 方法，这个方法是在 initMixin 方法调用时定义在 Vue 原型上的一个方法，_init 方法中对当前传入的 options 进行了一些处理（主要是判断当前实例化的是否为组件，使用 mergeOptions 方法对 options 进行加工，此处不做赘述），然后又调用了一系列方法进行了生命周期、事件、渲染器的初始化，我们主要来关注 **initState** 这个方法（[*src/core/instance/state.js*](https://github.com/DQFE/vue/blob/dev/src/core/instance/state.js#L48)）:
+在 [*src/core/index.js*](https://github.com/DQFE/vue/blob/dev/src/core/index.js#L1) 中我们可以看到一个 Vue 方法被导出，这个 Vue 方法是在 *src/core/instance/index* 中定义的，参数是 options。进行 vue 实例化时主要调用了 _init，它对当前传入的 options 进行了一些处理（主要是判断当前实例化的是否为组件，使用 mergeOptions 方法对 options 进行加工，此处不做赘述），然后又调用了一系列方法进行了生命周期、事件、渲染器的初始化，我们主要来关注 **initState** 这个方法（[*src/core/instance/state.js*](https://github.com/DQFE/vue/blob/dev/src/core/instance/state.js#L48)）:
 ```javascript
 export function initState (vm: Component) {
     vm._watchers = []
@@ -58,7 +59,7 @@ export function initState (vm: Component) {
 
 #### 将 Vue 实例上的 data 变成响应式数据
 
-上面的方法中对props、methods、data、computed和watch进行了初始化，这些都是Vue实例化方法中传入参数options对象的一些属性，这些属性都需要被**响应式化**。而针对于data的初始化分了两种情况[a*]，一种是options中没有data属性的，该方法会给data赋值一个空对象并进行observe（该方法之后我们会详细讲述），如果有data属性，则调用[**initData**](https://github.com/DQFE/vue/blob/dev/src/core/instance/state.js#L112)方法进行初始化。我们主要通过对data属性的初始化来分析Vue中的数据响应式原理。
+上面的方法中对 props、methods、data、computed 和 watch 进行了初始化，这些都是 Vue 实例化方法中传入参数 options 对象的一些属性，这些属性都需要被**响应式化**。而针对于 data 的初始化分了两种情况[a*]，一种是 options 中没有 data 属性的，该方法会给 data 赋值一个空对象并进行 observe（该方法之后我们会详细讲述），如果有 data 属性，则调用 [**initData**](https://github.com/DQFE/vue/blob/dev/src/core/instance/state.js#L112) 方法进行初始化。我们主要通过对 data 属性的初始化来分析Vue中的数据响应式原理。
 ```javascript
 function initData (vm: Component) {
     let data = vm.$options.data
@@ -113,7 +114,7 @@ initData 方法对 options 中的 data 进行处理，主要是有**两个目的
 
 接下来会对 data 中的每一个数据进行遍历[b*]，遍历过程将会使用  `hasOwn(methods, key)`、`hasOwn(props, key)`、`!isReserved(key)` 方法对该数据是否占用保留字、是否与 props 和 methods 中的属性重名进行判断，然后调用 proxy 方法将其代理到 Vue 实例上。此处需要注意的是：**如果 data 中的属性与 props、methods 中的属性重名，那么在 Vue 实例上调用这个属性时的优先级顺序是 props > methods > data**。
 
-最后对每一个 data 中的属性调用 `observe` 方法，该方法的功能是赋予 data 中的属性可被监测的特性。这个方法和其中使用到的 Observe 类是在[*src/core/observer/index.js*](https://github.com/DQFE/vue/blob/dev/src/core/observer/index.js#L37)文件中，observe 方法主要是调用**Observer类构造方法**，将每一个 data中的 value 变成可观察、响应式的：
+最后对每一个 data 中的属性调用 `observe` 方法，该方法的功能是赋予 data 中的属性可被监测的特性。这个方法和其中使用到的 Observe 类是在[*src/core/observer/index.js*](https://github.com/DQFE/vue/blob/dev/src/core/observer/index.js#L37)文件中，observe 方法主要是调用 **Observer 类构造方法**，将每一个 data 中的 value 变成可观察、响应式的：
 ```javascript
 constructor (value: any) {
     this.value = value
@@ -133,7 +134,7 @@ constructor (value: any) {
 可以看到该构造函数有以下几个目的：
 
 - 针对当前的数据对象新建一个订阅器；
-- 为每个数据的value都添加一个__ob__属性，该属性不可枚举并指向自身；
+- 为每个数据的 value 都添加一个__ob__属性，该属性不可枚举并指向自身；
 - 针对数组类型的数据进行单独处理（包括赋予其数组的属性和方法，以及 observeArray 进行的数组类型数据的响应式）；
 - this.walk(value)，遍历对象的 key 调用 defineReactive 方法；
 
@@ -167,9 +168,15 @@ get: function reactiveGetter () {
 
 其真实的逻辑我们通过举例来说明：当前正在渲染组件 ComponentA，会将当前全局唯一的监听器置为当前正在渲染组件 Component A 的 watcher，这个组件中使用到了数据 `data () { return { a: b + 1} }`，此时触发 b 的 getter 会将当前的 watcher 添加到 b 的订阅者列表 subs 中。也就是说如果 ComponentA 依赖 b，则将该组件的渲染 Watcher 作为订阅者加入b的订阅者列表中。**换言之，组件 A 用到了数据 b，则组件 A 依赖数据 b；反馈在依赖收集过程中，就是组件 A 的 watcher 会被添加到数据 b 的依赖数组 subs 中**。接下来我们就针对 Dep 类和 Watcher 类进行简要分析。
 
+其真实的逻辑我们举例来说明：当前正在渲染组件 ComponentA，会将当前全局唯一的监听器置为这个 Watcher，这个组件中使用到了数据 `data () { return { a: b + 1} }`，此时触发 b 的 getter 会将当前的 watcher 添加到 b 的订阅者列表 subs 中。也就是说如果 ComponentA 依赖 b，则将该组件的渲染 Watcher 作为订阅者加入 b 的订阅者列表中。
+
+![](https://user-gold-cdn.xitu.io/2019/12/27/16f452dfc2cdd772?w=1582&h=480&f=png&s=321949)
+
+
+
 #### Dep - 订阅器
 
-数据对象中的 get 方法主要使用 depend 方法进行依赖收集，该方法是 Dep 类中的属性方法，继续来看 [Dep 类](https://github.com/DQFE/vue/blob/dev/src/core/observer/dep.js#L13)是怎样实现的：
+数据对象中的 get 方法主要使用 depend 方法进行依赖收集，depend 是 Dep 类中的属性方法，继续来看 [Dep 类](https://github.com/DQFE/vue/blob/dev/src/core/observer/dep.js#L13)是怎样实现的：
 ```javascript
 export default class Dep {
     // a*
@@ -226,7 +233,7 @@ addDep (dep: Dep) {
 
 #### target Watcher的产生
 
-我们以生命周期中的 [mountComponent](https://github.com/DQFE/vue/blob/dev/src/core/instance/lifecycle.js#L141) 这一个阶段为例来分析上面提到的Dep.target 这个全局唯一的当前订阅者 Watcher 是怎样产生的。
+我们以生命周期中的 [mountComponent](https://github.com/DQFE/vue/blob/dev/src/core/instance/lifecycle.js#L141) 这一个阶段为例来分析上面提到的 Dep.target 这个全局唯一的当前订阅者 Watcher 是怎样产生的。
 
 ```javascript
 export function mountComponent (
@@ -253,7 +260,7 @@ export function mountComponent (
     return vm
 }
 ```
-通过mountComponent的代码可以看到在触发了`beforeMount`生命周期钩子后，紧接着创建了一个用于渲染Watcher实例。我们通过Watcher类的构造函数来看创建[Watcher](https://github.com/DQFE/vue/blob/dev/src/core/observer/watcher.js#L45)实例时做了哪些工作：
+通过mountComponent的代码可以看到在触发了`beforeMount`生命周期钩子后，紧接着创建了一个用于渲染Watcher实例。我们通过Watcher类的构造函数来看创建 [Watcher](https://github.com/DQFE/vue/blob/dev/src/core/observer/watcher.js#L45) 实例时做了哪些工作：
 ```javascript
 constructor (
     vm: Component,              // 当前渲染的组件
@@ -384,9 +391,11 @@ function flushSchedulerQueue () {
 - 组件的更新由父到子；因为父组件的创建过程是先于子的，所以 watcher 的创建也是先父后子，执行顺序也应该保持先父后子。
 - 用户的自定义 watcher 要优先于渲染 watcher 执行；因为用户自定义 watcher 是在渲染 watcher 之前创建的。
 - 如果一个组件在父组件的 watcher 执行期间被销毁，那么它对应的 watcher 执行都可以被跳过，所以父组件的 watcher 应该先执行。
+
 排序结束之后，便对这个队列进行遍历，并执行`watcher.run()`方法去实现数据更新的通知，run 方法的逻辑是：
-    - 新的值与老的值不同时会触发通知；
-    - 但是当值是对象或者 deep 为 true 时无论如何都会进行通知
+- 新的值与老的值不同时会触发通知；
+- 但是当值是对象或者 deep 为 true 时无论如何都会进行通知
+
 
 所以 watcher 有两个功能，一个是将属性的值进行更新，另一个就是可以执行 watch 中的回调函数 handler(newVal, oldVal)，这也是为何我们可以在 watcher 中拿到新旧两个值的原因。
 
