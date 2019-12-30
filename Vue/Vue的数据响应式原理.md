@@ -387,7 +387,7 @@ function flushSchedulerQueue () {
     // ...
   }
 ```
-这个方法首先对队列中的 watcher 按照其 id 进行了排序，排序的主要目的有三[Vue.js技术揭秘](https://ustbhuangyi.github.io/vue-analysis/v2/reactive/setters.html#%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90)：
+这个方法首先对队列中的 watcher 按照其 id 进行了排序，排序的主要目的有三（[Vue.js技术揭秘](https://ustbhuangyi.github.io/vue-analysis/v2/reactive/setters.html#%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90)）：
 - 组件的更新由父到子；因为父组件的创建过程是先于子的，所以 watcher 的创建也是先父后子，执行顺序也应该保持先父后子。
 - 用户的自定义 watcher 要优先于渲染 watcher 执行；因为用户自定义 watcher 是在渲染 watcher 之前创建的。
 - 如果一个组件在父组件的 watcher 执行期间被销毁，那么它对应的 watcher 执行都可以被跳过，所以父组件的 watcher 应该先执行。
