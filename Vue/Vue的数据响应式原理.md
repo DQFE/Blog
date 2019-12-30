@@ -384,9 +384,9 @@ function flushSchedulerQueue () {
 - 组件的更新由父到子；因为父组件的创建过程是先于子的，所以 watcher 的创建也是先父后子，执行顺序也应该保持先父后子。
 - 用户的自定义 watcher 要优先于渲染 watcher 执行；因为用户自定义 watcher 是在渲染 watcher 之前创建的。
 - 如果一个组件在父组件的 watcher 执行期间被销毁，那么它对应的 watcher 执行都可以被跳过，所以父组件的 watcher 应该先执行。
-排序结束之后，便对这个队列进行遍历，并执行`watcher.run()`方法去实现数据更新的通知，run方法的逻辑是：
+排序结束之后，便对这个队列进行遍历，并执行`watcher.run()`方法去实现数据更新的通知，run 方法的逻辑是：
     - 新的值与老的值不同时会触发通知；
-    - 但是当值是对象或者deep为true时无论如何都会进行通知
+    - 但是当值是对象或者 deep 为 true 时无论如何都会进行通知
 
 所以 watcher 有两个功能，一个是将属性的值进行更新，另一个就是可以执行 watch 中的回调函数 handler(newVal, oldVal)，这也是为何我们可以在 watcher 中拿到新旧两个值的原因。
 
