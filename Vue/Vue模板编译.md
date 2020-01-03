@@ -123,10 +123,13 @@ export function parseHTML (html, options) {
 **第一次循环**：
 parseStartTag：解析最开头的div开始标签内容，提取出该节点的attrs，同时调用advance方法从html中剔除当前开始标签内容，html变为`"<p>内容1..."`，为下一次循环做准备。
 handleStartTag：在stack中存储当前节点标签，并调用start钩子。
+
+
 ![f5a187be78dbd30575bdad9a41b025d8.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d2102bade7?w=2159&h=1002&f=png&s=200701)
 
 **第二次循环**：
 与循环1相同，处理p开始标签。
+
 ![8793a25f5d3bcb09da1888323fbdbcd2.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d21bdacf10?w=400&h=130&f=png&s=9169)
 
 **第三次循环**：
@@ -208,10 +211,14 @@ function parse (
 ###### **工具函数介绍**
 * `process` 函数：对当前元素描述对象做进一步处理（**在元素描述对象上添加各种各样的具有标识作用的属性**）。
     我们看 `parse` 方法的大纲就可以发现其内包含大量 `process` 函数，从命名上也可以看出这是针对元素各个属性和指令进行了区分处理（v-for、v-if、v-pre等）。
+ 
 ![](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2f2fa340549?w=430&h=673&f=png&s=141568)
+
 * `transform` 函数：指的是存储在 `transforms`， `preTransforms`，`postTransforms` 这三个变量中的函数。它们来源于对应平台下的 options.modules 配置。以 web 平台为例，如下图，实际上就存储在 `src/platforms/web/compiler/modules` 。这三个变量其实是根据调用时机进行区分命名的, 是不同调用时机下的函数。
 **和 `process` 函数的功能相同**，唯一的区别就是**平台化的区分**，`process` 函数是不区分平台执行的，而 `transform` 函数是处理对应平台下的相关逻辑的。
+
 ![](https://user-gold-cdn.xitu.io/2020/1/3/16f6a30d6c91f4f4?w=359&h=779&f=png&s=87713)
+
 
 我们在后面将展开介绍 `process` 和 `transform` 是如何对元素进行处理的。
 
