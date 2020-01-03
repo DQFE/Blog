@@ -123,12 +123,11 @@ export function parseHTML (html, options) {
 **第一次循环**：
 parseStartTag：解析最开头的div开始标签内容，提取出该节点的attrs，同时调用advance方法从html中剔除当前开始标签内容，html变为`"<p>内容1..."`，为下一次循环做准备。
 handleStartTag：在stack中存储当前节点标签，并调用start钩子。
-![f5a187be78dbd30575bdad9a41b025d8.png](evernotecid://4A49EE52-99D2-42F5-8EDD-932551E1A2CD/appyinxiangcom/14684792/ENResource/p52)
-
+![f5a187be78dbd30575bdad9a41b025d8.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d2102bade7?w=2159&h=1002&f=png&s=200701)
 
 **第二次循环**：
 与循环1相同，处理p开始标签。
-![8793a25f5d3bcb09da1888323fbdbcd2.png](evernotecid://4A49EE52-99D2-42F5-8EDD-932551E1A2CD/appyinxiangcom/14684792/ENResource/p49)@h=40
+![8793a25f5d3bcb09da1888323fbdbcd2.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d21bdacf10?w=400&h=130&f=png&s=9169)
 **第三次循环**：
 处理p标签后的内容“内容1”，调用chars钩子。
 
@@ -136,7 +135,8 @@ handleStartTag：在stack中存储当前节点标签，并调用start钩子。
 处理“<div>”,注意，这里会做一个异常情况的处理。对于p文本标签而言，它里面是不会出现类似div这种块标签的。
 handleStartTag方法内通过isNonPhrasingTag识别出当前标签div不是文本标签。为了使最终页面正常显示，会对上一个p标签做闭合处理。因此这里会调用parseEndTag方法：先从stack中pop出p标签，并调用end钩子结束p标签。而后再调用start钩子处理当前div标签。
 此时stack里剩余两个div标签。
-![e38af88b0c654d234a7fec127216fd35.png](evernotecid://4A49EE52-99D2-42F5-8EDD-932551E1A2CD/appyinxiangcom/14684792/ENResource/p54)
+
+![e38af88b0c654d234a7fec127216fd35.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d2206836e9?w=2017&h=566&f=png&s=133998)
 
 **第五次循环**：
 通过html.match(endTag)识别并提取出结束标签"</p>"，然后调用parseEndTag方法。
@@ -156,7 +156,8 @@ parseEndTag方法的思路是：
 处理最后的“</div>”。调用parseEndTag进行闭合处理。stack内剩余一个div标签。
 
 经过7次循环，最初的html已经被完全处理完了。但是stack里还有一个div标签。这个时候，可以看到while循环体外又调了一次parseEndTag。这一次的主要作用就算是为了闭合stack内的剩余标签。完整的标签处理结果以及对应钩子函数的调用流程可参见下图：
-![965eeb1a112e641195f3a4d3801581aa.png](evernotecid://4A49EE52-99D2-42F5-8EDD-932551E1A2CD/appyinxiangcom/14684792/ENResource/p56)
+
+![965eeb1a112e641195f3a4d3801581aa.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d26078bccd?w=1862&h=1105&f=png&s=135656)
 经过handleStartTag和parseEndTag做的一些闭合和补足工作，实际上其最终的效果应当是等同于下面这段html的。
 ```html
 <div class="myroot" :desc="desc">
@@ -207,11 +208,11 @@ function parse (
 ###### **工具函数介绍**
 * `process` 函数：对当前元素描述对象做进一步处理（**在元素描述对象上添加各种各样的具有标识作用的属性**）。
     我们看 `parse` 方法的大纲就可以发现其内包含大量 `process` 函数，从命名上也可以看出这是针对元素各个属性和指令进行了区分处理（v-for、v-if、v-pre等）。
-    ![a871d4ad7c4dd192d61aedd26a0355ad.png](evernotecid://4A49EE52-99D2-42F5-8EDD-932551E1A2CD/appyinxiangcom/14684792/ENResource/p58)@w=200
+![](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2f2fa340549?w=430&h=673&f=png&s=141568)
 * `transform` 函数：指的是存储在 `transforms`， `preTransforms`，`postTransforms` 这三个变量中的函数。它们来源于对应平台下的 options.modules 配置。以 web 平台为例，如下图，实际上就存储在 `src/platforms/web/compiler/modules` 。这三个变量其实是根据调用时机进行区分命名的, 是不同调用时机下的函数。
 **和 `process` 函数的功能相同**，唯一的区别就是**平台化的区分**，`process` 函数是不区分平台执行的，而 `transform` 函数是处理对应平台下的相关逻辑的。
-    ![9d4f633fc0bed77314b7ae91cf4f9868.png](evernotecid://4A49EE52-99D2-42F5-8EDD-932551E1A2CD/appyinxiangcom/14684792/ENResource/p59)@w=200
-
+evernotecid://4A49EE52-99D2-42F5-8EDD-932551E1A2CD/appyinxiangcom/14684792/ENResource/p59
+![](https://user-gold-cdn.xitu.io/2020/1/3/16f6a30d6c91f4f4?w=359&h=779&f=png&s=87713)
 
 我们在后面将展开介绍 `process` 和 `transform` 是如何对元素进行处理的。
 
