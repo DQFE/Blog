@@ -141,7 +141,7 @@ else {// 没有找到相同的可以复用的节点，则新建节点处理
 ```
 
 再回过头看我们的实例，新节点的数目大于旧节点，需要创建 newStartIdx 和 newEndIdx 之间的所有节点。在我们的实例中就是节点 F，因此直接创建 F 节点对应的真实节点放到 B 节点后面即可。
-![](https://pt-starimg.didistatic.com/static/starimg/img/waF69gvMde1578034589271.png)
+![](https://pt-starimg.didistatic.com/static/starimg/img/sxVeJG5dtk1578035364420.png)
 
 ## 最后
 通过上述的源码和实例的分析，我们完成了 Vue 中 diff 算法的完整解读。如果想要了解更多的 Vue 源码。欢迎进入我们的 [github地址](https://github.com/DQFE/vue) 进行查看，里面对每一行 Vue 源码都做了注释，方便大家的理解。
