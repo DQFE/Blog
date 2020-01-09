@@ -2,7 +2,7 @@
 vue 是如何将编译器中的代码转换为页面真实元素的？这个过程涉及到模板编译成 AST 语法树，AST 语法树构建渲染函数，渲染函数生成虚拟 dom，虚拟 dom 编译成真实 dom 这四个过程。前两个过程在我们 vue 源码解读系列文章的上一期已经介绍过了，所以本文会接着上一篇文章继续往下解读，着重分析后两个过程。
 ## 整体流程
 解读代码之前，先看一张 vue 编译和渲染的整体流程图:
-![](https://note.youdao.com/yws/res/9138/WEBRESOURCE3035931892114daff0716d8de5640a1d)
+![](https://pt-starimg.didistatic.com/static/starimg/img/FWkNyd4AzJ1578576518967.png)
 
 vue 会把用户写的代码中的 <template></template> 标签中的代码解析成 AST 语法树，再将处理后的 AST 生成相应的render函数，render 函数执行后会得到与模板代码对应的虚拟 dom，最后通过虚拟 dom 中新旧 vnode 节点的对比和更新，渲染得到最终的真实 dom。
 有了这个整体的概念我们再来结合源码分析具体的数据渲染过程。
