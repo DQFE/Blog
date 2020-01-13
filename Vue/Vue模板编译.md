@@ -11,23 +11,23 @@ git clone 后打开
 
 #### template和render
 
-在vue开发过程中，根据个人开发习惯或者需求，我们可以使用template模板或者render函数来创建html。render函数相较模板更接近编译器。而template模式下，其实是vue做了编译工作，将template模板编译成render函数。
+在 vue 开发过程中，根据个人开发习惯或者需求，我们可以使用 template 模板或者 render 函数来创建 html。render 函数相较模板更接近编译器。而 template 模式下，其实是 vue 做了编译工作，将 template 模板编译成 render 函数。
 
-参见[$mount](https://github.com/vuejs/vue/blob/v2.6.10/src/platforms/web/entry-runtime-with-compiler.js)方法，未配置render函数的情况下（即template模式），vue通过调用compileToFunctions方法来实现template模板的编译，产出render和staticRenderFns。这个render和我们编写的render意义是一样的，会返回vnode节点以供页面渲染和update时的patch工作。staticRenderFns是vue对template模板中静态节点的一个优化，避免静态节点的patch和重复渲染，来提高性能。
+参见 [$mount](https://github.com/vuejs/vue/blob/v2.6.10/src/platforms/web/entry-runtime-with-compiler.js) 方法，未配置 render 函数的情况下（即 template 模式），vue 通过调用 compileToFunctions 方法来实现 template 模板的编译，产出 render 和 staticRenderFns。这个 render 和我们编写的 render 意义是一样的，会返回 vnode 节点以供页面渲染和 update 时的 patch 工作。staticRenderFns 是 vue 对 template 模板中静态节点的一个优化，避免静态节点的 patch 和重复渲染，来提高性能。
 ```javascript
 const { render, staticRenderFns } = compileToFunctions(template, someOptions, this)
 ```
-[compileToFunctions](https://github.com/vuejs/vue/blob/v2.6.10/src/platforms/web/compiler/index.js)是从createCompiler函数的返回值中解构出来的。createCompiler顾名思义，是用来创建编译器的。它主要是通过将baseCompile作为从参数调用createCompilerCreator（编译器创建者的创建者。。）产出的。
+[compileToFunctions](https://github.com/vuejs/vue/blob/v2.6.10/src/platforms/web/compiler/index.js) 是从 createCompiler 函数的返回值中解构出来的。createCompiler 顾名思义，是用来创建编译器的。它主要是通过将 baseCompile 作为从参数调用 createCompilerCreator （编译器创建者的创建者。。）产出的。
 
-vue采用`createCompilerCreator`这样的实现方式主要是为了**便于兼容各个平台**。我们可以根据平台或者其他一些个性化需求提供自己的baseCompile函数传入createCompileCreator函数，就可以构建一个我们自己的编译器函数供外部使用（不需要去考虑缓存优化、错误收集等等这些问题）。
+vue 采用 `createCompilerCreator` 这样的实现方式主要是为了**便于兼容各个平台**。我们可以根据平台或者其他一些个性化需求提供自己的 baseCompile 函数传入 createCompileCreator 函数，这样就可以构建一个我们自己的编译器函数供外部使用（不需要去考虑缓存优化、错误收集等等这些问题）。
 
-[baseCompile](https://github.com/vuejs/vue/blob/v2.6.10/src/compiler/index.js)是模板编译的主方法，完成从template到render函数的一个转化工作。
+[baseCompile](https://github.com/vuejs/vue/blob/v2.6.10/src/compiler/index.js) 是模板编译的主方法，完成从 template 到 render 函数的一个转化工作。
 
-两个入参，template：我们编写的template模板内容；options：编译器的一些平台化选项参数，即不同平台（web、weex）上的vue编译渲染的个性化的一些配置参数。
+两个入参，template：我们编写的 template 模板内容；options：编译器的一些平台化选项参数，即不同平台（web、weex）上的vue编译渲染的个性化的一些配置参数。
 
-和大多数编译过程类似，vue的模板编译可以大致分成三个阶段：词法分析、句法分析和代码生成。
+和大多数编译过程类似，vue 的模板编译可以大致分成三个阶段：词法分析、句法分析和代码生成。
 
-在baseCompile方法中，parse函数担当了词法分析和句法分析的责任。optimize主要是遍历ast树去寻找并标记所有纯静态节点，为代码优化做准备工作。generate将parse后的ast树转化为目标平台的渲染函数render，并基于optimize的标记结果来生成staticRenderFns。
+在 baseCompile 方法中，parse 函数担当了词法分析和句法分析的责任。optimize  主要是遍历 ast 树去寻找并标记所有纯静态节点，为代码优化做准备工作。generate将 parse 后的 ast 树转化为目标平台的渲染函数 render，并基于 optimize 的标记结果来生成 staticRenderFns。
 ```JavaScript
 function baseCompile (
   template: string,
@@ -48,14 +48,14 @@ function baseCompile (
 }
 ```
 #### parse
-[parse](https://github.com/vuejs/vue/blob/v2.6.10/src/compiler/parser/index.js)是模板解析的核心方法。它的主要逻辑就是parseHTML的调用。parseHTML方法实际上做的就是词法分析的工作，将template模板解析成token字符流。它有两个入参，第一个是template模板，第二个是一系列钩子函数，这些钩子函数start、end、chars、comment的工作就是句法分析，将token字符流协助转化成ast节点。
+[parse](https://github.com/vuejs/vue/blob/v2.6.10/src/compiler/parser/index.js) 是模板解析的核心方法。它的主要逻辑就是 parseHTML 的调用。parseHTML 方法实际上做的就是词法分析的工作，将 template 模板解析成 token 字符流。它有两个入参，第一个是 template 模板，第二个是一系列钩子函数，这些钩子函数 start、end、chars、comment 的工作就是句法分析，将 token 字符流协助转化成 ast 节点。
 
-因此，其实在vue模板编译中，词法分析和句法分析并不独立，它俩是耦合的。
+因此，其实在 vue 模板编译中，词法分析和句法分析并不独立，它俩是耦合的。
 
-最终形成的ast树的结构的控制逻辑在parse方法里。
-parseHTML只是从前往后去遍历template，它通过<>去识别标签的开始和结束，用各种正则匹配表达式来作为辅助工具，来判断出当前这一段html是开始标签、结束标签、标签内内容还是纯注释，并且提取出开始标签里的各个属性配置，然后去调用相应的钩子。
-而parse方法里的主要钩子函数：start和end。start钩子函数根据会进行属性的处理，并生成ast节点。end钩子函数会对这个元素进行闭合。假设调用start钩子生成A标签的节点，那么在遇到A标签的end钩子调用前，中间所有的其它节点都是这个节点的后代节点。parse是通过最近的相同标签来判断是否是一个元素的，和我们写html的规范保持一致。
-根据这个逻辑，parse从html的第一个元素开始作为根节点一步步往下构建出完整的抽象语法树。
+最终形成的ast树的结构的控制逻辑在 parse 方法里。
+parseHTML 只是从前往后去遍历 template，它通过<>去识别标签的开始和结束，用各种正则匹配表达式来作为辅助工具，来判断出当前这一段 html 是开始标签、结束标签、标签内内容还是纯注释，并且提取出开始标签里的各个属性配置，然后去调用相应的钩子。
+而 parse 方法里的主要钩子函数：start 和 end。start 钩子函数根据会进行属性的处理，并生成 ast 节点。end 钩子函数会对这个元素进行闭合。假设调用 start 钩子生成 A 标签的节点，那么在遇到 A 标签的 end 钩子调用前，中间所有的其它节点都是这个节点的后代节点。parse 是通过最近的相同标签来判断是否是一个元素的，和我们写 html 的规范保持一致。
+根据这个逻辑，parse 从 html 的第一个元素开始作为根节点一步步往下构建出完整的抽象语法树。
 ```typescript
 parseHTML(template, {
     start (tag, attrs, unary, start, end) {},
@@ -66,8 +66,8 @@ parseHTML(template, {
 ```
 接下来我们结合源码来看一下具体的词法分析和句法分析分别的实现。
 ##### 词法分析：parseHTML
-我们首先通过[parseHTML](https://github.com/vuejs/vue/blob/v2.6.10/src/compiler/parser/html-parser.js)来理解词法分析的实现。
-在html-parser这个文件里，vue定义了一大堆正则匹配表达式，包括属性attribute、动态属性dynamicArgAttribute、开始标签的开始标志startTagOpen、开始标签的关闭标志startTagClose、结束标签endTag等等等等。理解这些正则表达式除了可以更好的理解源码，也可以帮助我们了解更多vue的用法。
+我们首先通过 [parseHTML](https://github.com/vuejs/vue/blob/v2.6.10/src/compiler/parser/html-parser.js) 来理解词法分析的实现。
+在 html-parser 这个文件里，vue 定义了一大堆正则匹配表达式，包括属性 attribute、动态属性 dynamicArgAttribute、开始标签的开始标志 startTagOpen、开始标签的关闭标志 startTagClose、结束标签 endTag 等等等等。理解这些正则表达式除了可以更好的理解源码，也可以帮助我们了解更多 vue 的用法。
 ```javascript
 export function parseHTML (html, options) {
   const stack = [] 
@@ -101,16 +101,16 @@ export function parseHTML (html, options) {
 ```
 我们先了解一下方法开头的几个重要变量：
 * stack：存储未解析完的非一元标签的节点的栈，主要目的是为了给未正常闭合的节点进行闭合处理
-* index：记录当前字符流的读入位置（读取的html的位置），
-* last：存储剩余的尚未解析的模板内容（html剩余部分），
+* index：记录当前字符流的读入位置（读取的 html 的位置），
+* last：存储剩余的尚未解析的模板内容（html 剩余部分），
 * lastTag：存储stack栈顶节点的标签。
 
-我们注意源码中的这两处代码，它们就是用来识别当前html开头是开始标签还是结束标签，结束标签一般以</tagName>的形式存在，因此可直接通过正则匹配；开始标签较结束标签复杂一些，会带有一些属性，因此需要通过parseStartTag去识别并提取里面的属性信息。
+我们注意源码中的这两处代码，它们就是用来识别当前 html 开头是开始标签还是结束标签，结束标签一般以</tagName>的形式存在，因此可直接通过正则匹配；开始标签较结束标签复杂一些，会带有一些属性，因此需要通过 parseStartTag 去识别并提取里面的属性信息。
 > const endTagMatch = html.match(endTag)
 > const startTagMatch = parseStartTag() 
 
-在识别之后，分别通过parseEndTag和handleStartTag对标签进行处理。handleStartTag主要做两件事：1. 将非一元标签推入stack栈内；2. 调用start钩子。parseEndTag会结合当前节点的标签和stack进行比较，对中间可能残留的一些未正常闭合的节点进行闭合处理，闭合处理指的就是调用options.end钩子。
-我们以下面这段html为例，来了解每次循环是怎么处理html内容的。
+在识别之后，分别通过 parseEndTag 和 handleStartTag 对标签进行处理。 handleStartTag 主要做两件事：1. 将非一元标签推入 stack 栈内；2. 调用 start 钩子。parseEndTag 会结合当前节点的标签和 stack 进行比较，对中间可能残留的一些未正常闭合的节点进行闭合处理，闭合处理指的就是调用 options.end 钩子。
+我们以下面这段 html 为例，来了解每次循环是怎么处理 html 内容的。
 ```html
 <div class="myroot" :desc="desc">
 	<p>内容1<div></p>
@@ -121,47 +121,47 @@ export function parseHTML (html, options) {
 </div>
 ```
 **第一次循环**：
-parseStartTag：解析最开头的div开始标签内容，提取出该节点的attrs，同时调用advance方法从html中剔除当前开始标签内容，html变为`"<p>内容1..."`，为下一次循环做准备。
-handleStartTag：在stack中存储当前节点标签，并调用start钩子。
+parseStartTag：解析最开头的 div 开始标签内容，提取出该节点的 attrs，同时调用 advance 方法从 html 中剔除当前开始标签内容，html 变为`"<p>内容1..."`，为下一次循环做准备。
+handleStartTag：在 stack 中存储当前节点标签，并调用 start 钩子。
 
 
 ![f5a187be78dbd30575bdad9a41b025d8.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d2102bade7?w=2159&h=1002&f=png&s=200701)
 
 **第二次循环**：
-与循环1相同，处理p开始标签。
+与循环 1 相同，处理 p 开始标签。
 
 ![8793a25f5d3bcb09da1888323fbdbcd2.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d21bdacf10?w=400&h=130&f=png&s=9169)
 
 **第三次循环**：
-处理p标签后的内容“内容1”，调用chars钩子。
+处理 p 标签后的内容“内容1”，调用 chars 钩子。
 
 **第四次循环**：
-处理“<div>”,注意，这里会做一个异常情况的处理。对于p文本标签而言，它里面是不会出现类似div这种块标签的。
-handleStartTag方法内通过isNonPhrasingTag识别出当前标签div不是文本标签。为了使最终页面正常显示，会对上一个p标签做闭合处理。因此这里会调用parseEndTag方法：先从stack中pop出p标签，并调用end钩子结束p标签。而后再调用start钩子处理当前div标签。
-此时stack里剩余两个div标签。
+处理“<div>”,注意，这里会做一个异常情况的处理。对于 p 文本标签而言，它里面是不会出现类似 div 这种块标签的。
+handleStartTag 方法内通过 isNonPhrasingTag 识别出当前标签 div 不是文本标签。为了使最终页面正常显示，会对上一个 p 标签做闭合处理。因此这里会调用 parseEndTag 方法：先从 stack 中 pop 出 p 标签，并调用 end 钩子结束 p 标签。而后再调用 start 钩子处理当前 div 标签。
+此时 stack 里剩余两个 div 标签。
 ![e38af88b0c654d234a7fec127216fd35.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d2206836e9?w=2017&h=566&f=png&s=133998)
 
 **第五次循环**：
-通过html.match(endTag)识别并提取出结束标签"</p>"，然后调用parseEndTag方法。
-从循环4我们得知，parseEndTag主要是从stack中pop出需要结束的标签，并调用end钩子。按照规范的html写法，stack的最后一个标签理当和当前结束标签相同。那么如果不同呢？现在我们处理"</p>"就会发现，stack里并不存在p标签。parseEndTag方法会对类似异常进行处理。
-parseEndTag方法的思路是：
+通过 html.match(endTag) 识别并提取出结束标签"</p>"，然后调用 parseEndTag 方法。
+从循环 4 我们得知，parseEndTag 主要是从 stack 中 pop 出需要结束的标签，并调用 end 钩子。按照规范的 html 写法，stack 的最后一个标签理当和当前结束标签相同。那么如果不同呢？现在我们处理"</p>"就会发现，stack 里并不存在 p 标签。parseEndTag 方法会对类似异常进行处理。
+parseEndTag 方法的思路是：
 
-1. 从stack末尾开始遍历寻找第一个相同标签
-2. 如果没找到，那么这段html会被自动忽略。对于br标签和p标签的解析会做特殊处理，以保持与浏览器的行为一致。类似此例中，会做一个补足工作，对p先调用start钩子，再调用end钩子。
-3. 如果找到了，然而不是stack的尾元素，意味着中间有一些未闭合的标签。parseEndTag会做一个自动闭合工作。类似`<div><h1><h2></div>`，当我们处理</div>这个结束标签的时候，stack=['div','h1','h2']。对div闭合处理前，会先将h1,h2进行闭合。
+1. 从 stack 末尾开始遍历寻找第一个相同标签
+2. 如果没找到，那么这段 html 会被自动忽略。对于 br 标签和 p 标签的解析会做特殊处理，以保持与浏览器的行为一致。类似此例中，会做一个补足工作，对 p 先调用 start 钩子，再调用 end 钩子。
+3. 如果找到了，然而不是 stack 的尾元素，意味着中间有一些未闭合的标签。parseEndTag 会做一个自动闭合工作。类似`<div><h1><h2></div>`，当我们处理</div>这个结束标签的时候，stack=['div','h1','h2']。对div闭合处理前，会先将 h1,h2 进行闭合。
 
-因此，stack依旧剩余两个div标签。
+因此，stack 依旧剩余两个 div 标签。
 
 **第六次循环**：
 处理 `inner-con` ，与循环 1 类似。区别在于，此时通过正则匹配识别当前标签自闭合。不会将该标签推入 stack 栈内，调用 start 钩子方法时，会同步自闭合特征。
 
 **第七次循环**：
-处理最后的“</div>”。调用parseEndTag进行闭合处理。stack内剩余一个div标签。
+处理最后的“</div>”。调用 parseEndTag 进行闭合处理。stack 内剩余一个 div 标签。
 
-经过7次循环，最初的html已经被完全处理完了。但是stack里还有一个div标签。这个时候，可以看到while循环体外又调了一次parseEndTag。这一次的主要作用就算是为了闭合stack内的剩余标签。完整的标签处理结果以及对应钩子函数的调用流程可参见下图：
+经过 7 次循环，最初的 html 已经被完全处理完。但是 stack 里还有一个 div 标签。这个时候，可以看到 while 循环体外又调用了一次 parseEndTag。这一次调用的主要作用是为了闭合 stack 内的剩余标签。完整的标签处理结果以及对应钩子函数的调用流程可参见下图：
 
 ![965eeb1a112e641195f3a4d3801581aa.png](https://user-gold-cdn.xitu.io/2020/1/3/16f6a2d26078bccd?w=1862&h=1105&f=png&s=135656)
-经过handleStartTag和parseEndTag做的一些闭合和补足工作，实际上其最终的效果应当是等同于下面这段html的。
+经过 handleStartTag 和 parseEndTag 做的一些闭合和补足工作，实际上其最终的效果应当是等同于下面这段 html：
 ```html
 <div class="myroot" :desc="desc">
     <p>内容1</p>
@@ -175,10 +175,11 @@ parseEndTag方法的思路是：
 </div>
 ```
 ##### 句法分析
-经过上面对parseHTML的理解，我们大概知道，每当遇到开始标签时，会调用`parse`中定义的`start`钩子，遇到结束标签时，会调用`end`钩子。接下来，我们来看看Vue是怎么通过这几个钩子来生成ast树的。
-我们还是从源码出发，先看看`parse`方法的整体组成。
+经过上面对 parseHTML 的理解，我们知道了每当遇到开始标签时，会调用 `parse` 中定义的 `start` 钩子，遇到结束标签时，会调用 `end` 钩子。接下来，我们来看看 Vue 是怎么通过这几个钩子来生成 ast 树的。
+
+我们还是从源码出发，先看看 `parse` 方法的整体组成。
 ###### 入参
-> `template`: 我们需要解析的模板html
+> `template`: 我们需要解析的模板 html
 > `options`: 则是编译器的一些**平台化选项参数**，即不同平台（web、weex）上的vue编译渲染的个性化的一些配置参数。
 
 ```javascript
@@ -204,7 +205,7 @@ function parse (
 ```
 ###### 变量介绍
 * `stack`: 存储处理过的**未结束的节点**；
-* `root`: 定义**根节点**，作为最终的ast树返回；
+* `root`: 定义**根节点**，作为最终的 ast 树返回；
 * `currentParent`: 当前处理节点的**父节点**；
 * `inVPre`和`inPre`: 这两个变量主要用来标记节点是否在有**v-pre属性的标签内或者在pre标签内**，这决定最终将如何对节点的属性进行处理。
 
@@ -293,11 +294,11 @@ export function processFor (el: ASTElement) {
 }
 ```
 **业务函数之 closeElement**
-closeElement方法里主要做了四件事：
+closeElement 方法里主要做了四件事：
 1. **父子结构的维系**：将当前节点存储到其父节点的 children 数组中
 2. **元素剩余属性的处理 processElement**：processElement 其实是其它剩余的一系列 process 函数的集合，包括 processKey、processRef、processAttrs 等等。通过这些函数对节点的剩余属性进行处理，在这个过程中，还会调用 transforms 方法。web 平台上的 transforms 主要是对 class 和 style 做动态绑定值和静态值的处理。
-3. **pre状态的重置**：将 inVPre和inPre这两个属性回退为false，避免影响后续节点属性的处理；
-4. 调用postTransforms方法组对节点做最后的处理。
+3. **pre状态的重置**：将 inVPre 和 inPre 这两个属性回退为 false，避免影响后续节点属性的处理；
+4. 调用 postTransforms 方法组对节点做最后的处理。
 ```javascript
 function closeElement (element) {
     currentParent.children.push(element)
