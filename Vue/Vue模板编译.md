@@ -10,7 +10,7 @@ git clone 后打开
 
 
 
-在 vue 开发过程中，根据个人开发习惯或者需求，我们可以使用 template 模板或者 render 函数来创建 html。render 函数相较模板更接近编译器。而 template 模式下，其实是 vue 做了编译工作，将 template 模板编译成 render 函数。 本文将从熟知的 $mount 方法出发，一步步深入了解 render 的编译生成。
+在 vue 开发过程中，根据个人开发习惯或者需求，我们可以使用 template 模板或者 render 函数来创建 html。render 函数相较模板更接近编译器。而 template 模式下，其实是 vue 做了编译工作，将 template 模板编译成 render 函数。 本文将从我们熟知的 $mount 方法出发，一步步深入了解 render 的编译生成。
 
 #### 编译器初探
 
